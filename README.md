@@ -38,6 +38,8 @@
 >>> _qrcode.generate('https://gitee.com/walkline/micropython-qrcode-cmodule')
 I (66945) QRCODE_MODULE: Encoding below text with ECC LVL 3 & QR Code Version 40
 I (66945) QRCODE_MODULE: https://gitee.com/walkline/micropython-qrcode-cmodule
+>>> print(_qrcode)
+<QRCODE version=6, max_version=40 length=41, ecc_level=3, buffer_size=210>
 >>> _qrcode.print()
 >>>
 ```
