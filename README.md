@@ -77,6 +77,7 @@ $ ab --repl
 
 * `ecc_level([level])`：获取或设置`ecc_level`
 * `version()`：获取已生成二维码的版本号
+
 	版本号计算方法：
 	```python
 	(_qrcode.length() - 17) // 4
