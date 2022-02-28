@@ -12,6 +12,11 @@
 #define VERSION_MIN qrcodegen_VERSION_MIN   /* 1 */
 #define VERSION_MAX qrcodegen_VERSION_MAX   /* 40 */
 
+#define	BLACK   0x0000
+#define WHITE   0xFFFF
+
+#define RGB2BGR_565(color)  ((color & 0xF800) >> 11) | (color & 0x07E0) | ((color & 0x001F) << 11)
+
 typedef struct _qrcode_QRCODE_obj_t {
     mp_obj_base_t base;
 
