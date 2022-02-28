@@ -23,6 +23,9 @@
 
 	# 在 set(IDF_COMPONENTS 下边增加
 	qrcode
+
+	# 在 idf_component_register( 下的 SRCS、INCLUDE_DIRS 分别增加
+	${EXTRA_COMPONENT_DIRS}
 	```
 
 * 编译固件即可增加`qrcode`模块
