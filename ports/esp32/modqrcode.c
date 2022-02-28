@@ -27,25 +27,33 @@ static const char *lt[] = {
     /* 15 */ "\u2588\u2588",
 };
 
-STATIC void get_buffered_data(qrcode_QRCODE_obj_t *self, uint8_t *buffer, int length) {
-    int index;
-	const int mask[8] = { 0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01 };
+STATIC void fill_rect(uint16_t *buffer, unsigned int x, unsigned int y, unsigned int width, unsigned int height,
+                      mp_int_t stride, mp_int_t format, uint32_t color) {
+    if (format == FORMAT_MONO_HLSB) {
+        unsigned int advance = stride >> 3;
 
-	for (int y = 0; y < self->length; y++) {
-		index = 0;
-		for (int x = 0; x < self->length; x++) {
-			if (qrcodegen_getModule(self->buffer, x, y)) {*buffer |= mask[index];}
+        while (width--) {
+            uint8_t *b = &((uint8_t *)buffer)[(x >> 3) + y * advance];
+            unsigned int offset = 7 - (x & 7);
 
-			index++;
+            for (unsigned int hh = height; hh; --hh) {
+                *b = (*b & ~(0x01 << offset)) | ((color != 0) << offset);
+                b += advance;
+            }
 
-			if (index == 8) {
-				index = 0;
-				buffer++;
-			}
-		}
+            ++x;
+        }
+    } else if (format == FORMAT_RGB565) {
+        uint16_t *b = &((uint16_t *)buffer)[x + y * stride];
 
-		if (index != 0) {buffer++;}
-	}
+        while (height--) {
+            for (unsigned int ww = width; ww; --ww) {
+                *b++ = color;
+            }
+
+            b += stride - width;
+        }
+    }
 }
 
 STATIC bool has_generated_data(qrcode_QRCODE_obj_t *self) {
@@ -68,7 +76,8 @@ STATIC bool has_generated_data(qrcode_QRCODE_obj_t *self) {
 /**
  * get qrcode buffered data with mono_hlsb or rgb565 format
  * 
- * code.buffer_data(bytearray)
+ * code.buffer_data(bytearray, qrcode.FORMAT_MONO_HLSB[, scales])
+ * code.buffer_data(bytearray, qrcode.FORMAT_RGB565[, scales, color, bg_color])
  **/
 STATIC mp_obj_t qrcode_QRCODE_buffer_data(size_t n_args, const mp_obj_t *args) {
     qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(args[0]);
@@ -76,12 +85,45 @@ STATIC mp_obj_t qrcode_QRCODE_buffer_data(size_t n_args, const mp_obj_t *args) {
     if (has_generated_data(self)) {
         mp_buffer_info_t bufinfo;
         mp_get_buffer_raise(args[1], &bufinfo, MP_BUFFER_WRITE);
-        get_buffered_data(self, bufinfo.buf, bufinfo.len);
+        mp_int_t format = mp_obj_get_int(args[2]);
+        mp_int_t scales = 1;
+        mp_int_t stride = 0;
+        uint16_t color = WHITE;
+        uint16_t bg_color = BLACK;
+
+        if (n_args >= 3 && n_args <= 6) {
+            scales = mp_obj_get_int(args[3]);
+            if (scales < 1) {scales = 1;}
+            stride = format == FORMAT_MONO_HLSB ? (self->length * scales + 7) & ~7 : self->length * scales;
+        }
+
+        if (n_args >= 5 && n_args <= 6) {
+            color = mp_obj_get_int(args[4]);
+            if (format == FORMAT_MONO_HLSB) {
+                color = 1;
+            } else {
+                color = RGB2BGR_565(color);
+            }
+        }
+
+        if (n_args == 6) {bg_color = RGB2BGR_565(mp_obj_get_int(args[5]));}
+
+        for (int y = 0; y < self->length; y++) {
+            for (int x = 0; x < self->length; x++) {
+                if (qrcodegen_getModule(self->buffer, x, y)) {
+                    fill_rect(bufinfo.buf, x * scales, y * scales, scales, scales, stride, format, color);
+                } else {
+                    if (format == FORMAT_RGB565) {
+                        fill_rect(bufinfo.buf, x * scales, y * scales, scales, scales, stride, format, bg_color);
+                    }
+                }
+            }
+        }
     }
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(qrcode_QRCODE_buffer_data_obj, 2, 2, qrcode_QRCODE_buffer_data);
+MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(qrcode_QRCODE_buffer_data_obj, 3, 6, qrcode_QRCODE_buffer_data);
 
 /**
  * get qrcode raw data with tuple format
@@ -92,7 +134,7 @@ STATIC mp_obj_t qrcode_QRCODE_raw_data(mp_obj_t self_in) {
     qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
     if (has_generated_data(self)) {
-        int size = self->length;
+        mp_int_t size = self->length;
         mp_obj_t raw_data[size];
         mp_obj_t row[size];
 
@@ -120,8 +162,8 @@ STATIC mp_obj_t qrcode_QRCODE_print(mp_obj_t self_in) {
     qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
     if (has_generated_data(self)) {
-        int size = self->length;
-        int border = 2;
+        mp_int_t size = self->length;
+        mp_int_t border = 2;
         unsigned char num = 0;
 
         for (int y = -border; y < size + border; y+=2) {
@@ -189,7 +231,7 @@ STATIC mp_obj_t qrcode_QRCODE_generate(mp_obj_t self_in, mp_obj_t text_in) {
         return mp_obj_new_bool(true);
     }
 
-    return mp_const_none;
+    return mp_obj_new_bool(false);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(qrcode_QRCODE_generate_obj, qrcode_QRCODE_generate);
 
@@ -332,6 +374,10 @@ STATIC const mp_rom_map_elem_t qrcode_module_globals_table[] = {
     /* versions */
     {MP_ROM_QSTR(MP_QSTR_VERSION_MIN),      MP_ROM_INT(VERSION_MIN)},
     {MP_ROM_QSTR(MP_QSTR_VERSION_MAX),      MP_ROM_INT(VERSION_MAX)},
+
+    /* format*/
+    {MP_ROM_QSTR(MP_QSTR_FORMAT_MONO_HLSB), MP_ROM_INT(FORMAT_MONO_HLSB)},
+    {MP_ROM_QSTR(MP_QSTR_FORMAT_RGB565),    MP_ROM_INT(FORMAT_RGB565)},
 };
 STATIC MP_DEFINE_CONST_DICT(qrcode_module_globals, qrcode_module_globals_table);
 
