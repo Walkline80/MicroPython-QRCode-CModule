@@ -30,6 +30,12 @@
 
 * 编译固件即可增加`qrcode`模块
 
+### 显示效果
+
+| 控制台 | TFT | OLED |
+| :-: | :-: | :-: |
+| ![](./images/console.png) | ![](./images/tft.png) | ![](./images/oled.png) |
+
 ### 简单示例
 
 生成二维码，并在控制台打印输出
@@ -47,8 +53,6 @@ I (66945) QRCODE_MODULE: https://gitee.com/walkline/micropython-qrcode-cmodule
 >>>
 ```
 
-![终端中打印的二维码](./images/screenshot.png)
-
 ### 更多示例
 
 ```bash
@@ -62,39 +66,42 @@ $ ab
 $ ab --repl
 
 # 使用快捷键 ctrl+r，并选择以 demo_ 开头的文件
-# 已添加测试了基于 st7789 驱动的 tft 屏幕的测试文件
 ```
 
 ### 模块方法列表
 
 * `qrcode.QRCODE([ecc_level, max_version])`
-
-	#### 必选参数
-
-	无
-
-	#### 可选参数
-
 	* `ecc_level`：容错等级（默认值`ECC_MED`），详情见`模块常量列表`
 	* `max_version`：可生成二维码的最大版本号（默认值`VERSION_MAX`），详情见`模块常量列表`
-
-* `ecc_level([level])`：获取或设置`ecc_level`
+* `ecc_level([level])`：获取或设置容错等级
 * `version()`：获取已生成二维码的版本号
 
-	版本号计算方法：
 	```python
-	(_qrcode.length() - 17) // 4
+	# 版本号计算方法
+	(QRCODE.length() - 17) // 4
 	```
+
 * `length()`：获取已生成二维码的边长
 * `generate(text)`：使用指定字符串生成二维码
 * `print()`：在控制台打印二维码预览图
 * `raw_data()`：获取二维码点阵元组数据，形如`((1, 0, ...), (0, 1, ...), ...)`
-* `buffer_data(byetarray)`：传入一个`byetarray`数组，以`MONO_HLSB`格式填充二维码数据
+* `buffer_data(byetarray, format[, scales, color, bg_color])`：将二维码数据以指定格式填充到数组
+	* `bytearray`：已初始化大小的`byetarray`数组
+	* `format`：数据格式，详情见`模块常量列表`
+	* `scales`：放大倍数（默认值`1`）
+	* `color`：前景颜色（默认值`1`或`0xffff`）
+	* `bg_color`：背景颜色（默认值`0x0000`）
 
-	`bytearray`初始化长度计算方法：
-	```python
-	(_qrcode.length() - 1) // 8 + 1) * _qrcode.length()
-	```
+	<br/>
+
+	> **bytearray 初始化长度计算方法：**
+	> ```python
+	> # FORMAT_MONO_HLSB 格式
+	> (QRCODE.length() * scales - 1) // 8 + 1) * (QRCODE.length() * scales)
+	>
+	> # FORMAT_RGB565 格式
+	> (QRCODE.length() * scales) ** 2 * 2
+	> ```
 
 ### 模块常量列表
 
@@ -105,6 +112,9 @@ $ ab --repl
 
 * `VERSION_MIN`：二维码支持的最低版本，`1`
 * `VERSION_MAX`：二维码支持的最高版本，`40`
+
+* `FORMAT_MONO_HLSB`：指定`buffer_data()`函数填充数组的方式，适用于`OLED`屏幕
+* `FORMAT_RGB565`：指定`buffer_data()`函数填充数组的方式，适用于`TFT`屏幕
 
 ### 参考资料
 
