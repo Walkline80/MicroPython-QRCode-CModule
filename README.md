@@ -73,13 +73,22 @@ $ ab --repl
 * `qrcode.QRCODE([ecc_level, max_version])`
 	* `ecc_level`：容错等级（默认值`ECC_MED`），详情见`模块常量列表`
 	* `max_version`：可生成二维码的最大版本号（默认值`VERSION_MAX`），详情见`模块常量列表`
+
+	<br/>
+
+	> **适当降低最大版本号可以减少占用的缓存**
+	> ```python
+	> # 版本号对应缓存大小计算方法
+	> ((version * 4 + 17) ** 2 + 7) // 8 + 1
+	> ```
+
 * `ecc_level([level])`：获取或设置容错等级
 * `version()`：获取已生成二维码的版本号
 
-	```python
-	# 版本号计算方法
-	(QRCODE.length() - 17) // 4
-	```
+	> ```python
+	> # 版本号计算方法
+	> (QRCODE.length() - 17) // 4
+	> ```
 
 * `length()`：获取已生成二维码的边长
 * `generate(text)`：使用指定字符串生成二维码
@@ -94,8 +103,9 @@ $ ab --repl
 
 	<br/>
 
-	> **bytearray 初始化长度计算方法：**
 	> ```python
+	> # bytearray 初始化长度计算方法：
+	>
 	> # FORMAT_MONO_HLSB 格式
 	> (QRCODE.length() * scales - 1) // 8 + 1) * (QRCODE.length() * scales)
 	>
