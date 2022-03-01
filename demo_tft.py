@@ -4,7 +4,6 @@ Copyright © 2022 Walkline Wang (https://walkline.wang)
 Gitee: https://gitee.com/walkline/micropython-qrcode-cmodule
 """
 from machine import SPI, Pin
-import utime
 import gc
 import st7789
 import qrcode
@@ -14,6 +13,8 @@ text = 'https://gitee.com/walkline/micropython-qrcode-cmodule'
 
 
 def timed_function(f, *args, **kwargs):
+	import utime
+
 	myname = str(f).split(' ')[1]
 	def new_func(*args, **kwargs):
 		t = utime.ticks_us()
@@ -43,37 +44,6 @@ def initialize_display():
 	return display
 
 @timed_function
-def display_qrcode_origin():
-	global _display, _qrcode
-
-	if _qrcode.generate(text):
-		_qrcode.print()
-		print(_qrcode)
-
-		scales = 4
-		scale_length = _qrcode.length() * scales
-		buffer_array = bytearray(scale_length ** 2 * 2)
-		qrcodebuffer = bytearray(((scale_length - 1) // 8 + 1) * scale_length)
-		_qrcode.buffer_data(qrcodebuffer, qrcode.FORMAT_MONO_HLSB, scales)
-
-		_display.map_bitarray_to_rgb565(
-			qrcodebuffer,
-			buffer_array,
-			scale_length,
-			st7789.WHITE, st7789.BLACK
-		)
-
-		center_x = (_display.width() - scale_length) // 2
-		center_y = (_display.height() - scale_length) // 2
-
-		_display.blit_buffer(
-			buffer_array,
-			center_x, center_y,
-			scale_length,
-			scale_length
-		)
-
-@timed_function
 def display_qrcode_scales_1():
 	'''
 	直接生成指定倍数的图像，图像大小受内存限制
@@ -84,16 +54,13 @@ def display_qrcode_scales_1():
 		_qrcode.print()
 		print(_qrcode)
 
+		# 根据屏幕尺寸和可用内存计算最大缩放倍数
 		scales = min(_display.width(), _display.height()) // _qrcode.length()
 
-		while True:
-			if (_qrcode.length() * scales) ** 2 * 2 + 10_000 > gc.mem_free():
-				scales -= 1
-			else:
-				break
+		while (_qrcode.length() * scales) ** 2 * 2 + 10_000 > gc.mem_free():
+			scales -= 1
 
-		if scales < 1:
-			scales = 1
+		if scales < 1: scales = 1
 
 		scale_length = _qrcode.length() * scales
 		buffer_array = bytearray(scale_length ** 2 * 2)
@@ -151,6 +118,5 @@ if __name__ == '__main__':
 
 	display_qrcode_scales_1()
 	# display_qrcode_scales_2()
-	# display_qrcode_origin()
 
 	gc.collect()
