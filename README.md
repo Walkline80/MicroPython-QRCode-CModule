@@ -8,27 +8,13 @@
 
 ### 添加模块
 
-* 将`ports/esp32/`下的文件复制到`MicroPython`项目对应位置
-* 修改`ports/esp32/CMakeLists.txt`文件，增加如下内容：
+* 将`ports/esp32/`下的文件夹复制到`MicroPython`项目对应位置
+* 使用如下命令编译固件：
 
-	```doc
-	set(EXTRA_COMPONENT_DIRS $ENV{IDF_PATH}/examples/common_components/qrcode)
+	```bash
+	cd micropython/ports/esp32
+	make USER_C_MODULES=../cmodules/micropython.cmake
 	```
-
-* 修改`ports/esp32/main/CMakeLists.txt`文件：
-
-	```doc
-	# 在 set(MICROPY_SOURCE_PORT 下边增加
-	${PROJECT_DIR}/modqrcode.c
-
-	# 在 set(IDF_COMPONENTS 下边增加
-	qrcode
-
-	# 在 idf_component_register( 下的 SRCS、INCLUDE_DIRS 分别增加
-	${EXTRA_COMPONENT_DIRS}
-	```
-
-* 编译固件即可增加`qrcode`模块
 
 ### 显示效果
 
@@ -126,9 +112,11 @@ $ ab --repl
 * `FORMAT_MONO_HLSB`：指定`buffer_data()`函数填充数组的方式，适用于`OLED`屏幕
 * `FORMAT_RGB565`：指定`buffer_data()`函数填充数组的方式，适用于`TFT`屏幕
 
+
+
 ### 参考资料
 
-* [QR Code generator component](https://github.com/espressif/esp-idf/tree/master/examples/common_components/qrcode)
+* [espressif/qrcode v0.1.0](https://components.espressif.com/components/espressif/qrcode)
 * [MicroPython QRCode Research](https://gitee.com/walkline/micropython-qrcode-research)
 * [ESP32-C3 MicroPython 固件编译环境搭建教程](https://gitee.com/walkline/esp32-c3_micropython_firmware)
 * [WSL 下加速 Github 克隆速度](https://walkline.wang/blog/archives/263)
