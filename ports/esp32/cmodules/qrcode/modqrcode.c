@@ -3,10 +3,9 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "esp_log.h"
 #include "modqrcode.h"
 
-static const char *TAG = "modqrcode";
+STATIC const mp_obj_type_t qrcode_QRCODE_type;
 
 static const char *lt[] = {
 	/* 0 */ "  ",
@@ -28,7 +27,8 @@ static const char *lt[] = {
 };
 
 STATIC void fill_rect(uint16_t *buffer, unsigned int x, unsigned int y, unsigned int width, unsigned int height,
-					  mp_int_t stride, mp_int_t format, uint32_t color) {
+					  mp_int_t stride, mp_int_t format, uint32_t color)
+{
 	if (format == FORMAT_MONO_HLSB) {
 		unsigned int advance = stride >> 3;
 
@@ -56,7 +56,8 @@ STATIC void fill_rect(uint16_t *buffer, unsigned int x, unsigned int y, unsigned
 	}
 }
 
-STATIC bool has_generated_data(qrcode_QRCODE_obj_t *self) {
+STATIC bool has_generated_data(qrcode_QRCODE_obj_t *self)
+{
 	bool result = true;
 
 	if (self->length == 0) {
@@ -79,7 +80,8 @@ STATIC bool has_generated_data(qrcode_QRCODE_obj_t *self) {
  * code.buffer_data(bytearray, qrcode.FORMAT_MONO_HLSB[, scales])
  * code.buffer_data(bytearray, qrcode.FORMAT_RGB565[, scales, color, bg_color])
  **/
-STATIC mp_obj_t qrcode_QRCODE_buffer_data(size_t n_args, const mp_obj_t *args) {
+STATIC mp_obj_t qrcode_QRCODE_buffer_data(size_t n_args, const mp_obj_t *args)
+{
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(args[0]);
 
 	if (has_generated_data(self)) {
@@ -130,7 +132,8 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(qrcode_QRCODE_buffer_data_obj, 3, 6, qrcode_
  * 
  * code.raw_data()
  **/
-STATIC mp_obj_t qrcode_QRCODE_raw_data(mp_obj_t self_in) {
+STATIC mp_obj_t qrcode_QRCODE_raw_data(mp_obj_t self_in)
+{
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
 	if (has_generated_data(self)) {
@@ -158,7 +161,8 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(qrcode_QRCODE_raw_data_obj, qrcode_QRCODE_raw_d
  * 
  * code.print()
  **/
-STATIC mp_obj_t qrcode_QRCODE_print(mp_obj_t self_in) {
+STATIC mp_obj_t qrcode_QRCODE_print(mp_obj_t self_in)
+{
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
 	if (has_generated_data(self)) {
@@ -173,11 +177,14 @@ STATIC mp_obj_t qrcode_QRCODE_print(mp_obj_t self_in) {
 				if ((x < size + border) && qrcodegen_getModule(self->buffer, x+1, y)) {num |= 1 << 1;}
 				if ((y < size + border) && qrcodegen_getModule(self->buffer, x, y+1)) {num |= 1 << 2;}
 				if ((x < size + border) && (y < size + border) && qrcodegen_getModule(self->buffer, x+1, y+1)) {num |= 1 << 3;}
-				printf("%s", lt[num]);
+
+				mp_printf(&mp_plat_print, "%s", lt[num]);
 			}
-			printf("\n");
+
+			mp_printf(&mp_plat_print, "\n");
 		}
-		printf("\n");
+
+		mp_printf(&mp_plat_print, "\n");
 	}
 
 	return mp_const_none;
@@ -190,7 +197,8 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(qrcode_QRCODE_print_obj, qrcode_QRCODE_print);
  * 
  * code.generate('some text')
  **/
-STATIC mp_obj_t qrcode_QRCODE_generate(mp_obj_t self_in, mp_obj_t text_in) {
+STATIC mp_obj_t qrcode_QRCODE_generate(mp_obj_t self_in, mp_obj_t text_in)
+{
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 	const char *text = mp_obj_str_get_str(text_in);
 	uint8_t *tempbuf;
@@ -205,9 +213,9 @@ STATIC mp_obj_t qrcode_QRCODE_generate(mp_obj_t self_in, mp_obj_t text_in) {
 		);
 	}
 
-	ESP_LOGI(TAG, "Encoding below text with ECC LVL %d & QR Code Version %d",
-			 self->ecc_level, self->max_version);
-	ESP_LOGI(TAG, "%s", text);
+	// ESP_LOGI(TAG, "Encoding below text with ECC LVL %d & QR Code Version %d",
+	// 		 self->ecc_level, self->max_version);
+	// ESP_LOGI(TAG, "%s", text);
 
 	// Make the QR Code symbol
 	bool ok = qrcodegen_encodeText(
@@ -240,7 +248,8 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(qrcode_QRCODE_generate_obj, qrcode_QRCODE_gener
  * 
  * code.length()
  **/
-STATIC mp_obj_t qrcode_QRCODE_length(mp_obj_t self_in) {
+STATIC mp_obj_t qrcode_QRCODE_length(mp_obj_t self_in)
+{
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
 	return mp_obj_new_int(self->length);
@@ -252,7 +261,8 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(qrcode_QRCODE_length_obj, qrcode_QRCODE_length)
  * 
  * code.version()
  **/
-STATIC mp_obj_t qrcode_QRCODE_version(mp_obj_t self_in) {
+STATIC mp_obj_t qrcode_QRCODE_version(mp_obj_t self_in)
+{
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
 	return mp_obj_new_int(self->version);
@@ -265,7 +275,8 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(qrcode_QRCODE_version_obj, qrcode_QRCODE_versio
  * code.ecc_level()
  * code.ecc_level(3)
 **/
-STATIC mp_obj_t qrcode_QRCODE_ecc_level(size_t n_args, const mp_obj_t *args) {
+STATIC mp_obj_t qrcode_QRCODE_ecc_level(size_t n_args, const mp_obj_t *args)
+{
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(args[0]);
 
 	if (n_args == 1) {
@@ -274,7 +285,7 @@ STATIC mp_obj_t qrcode_QRCODE_ecc_level(size_t n_args, const mp_obj_t *args) {
 		if (mp_obj_is_integer(args[1])) {
 			mp_int_t ecc_level = mp_obj_get_int(args[1]);
 
-			if (ecc_level >= ESP_QRCODE_ECC_LOW && ecc_level <= ESP_QRCODE_ECC_HIGH) {
+			if (ecc_level >= QRCODE_ECC_LOW && ecc_level <= QRCODE_ECC_HIGH) {
 				self->ecc_level = ecc_level;
 			}
 		} else {
@@ -305,13 +316,13 @@ STATIC const mp_rom_map_elem_t qrcode_QRCODE_locals_dict_table[] = {
 };
 STATIC MP_DEFINE_CONST_DICT(qrcode_QRCODE_locals_dict, qrcode_QRCODE_locals_dict_table);
 
-STATIC void qrcode_QRCODE_type_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+STATIC void qrcode_QRCODE_type_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind)
+{
 	(void) kind;
 	qrcode_QRCODE_obj_t *self = MP_OBJ_TO_PTR(self_in);
 	mp_printf(print, "<QRCODE version=%d, max_version=%d length=%d, ecc_level=%d, buffer_size=%d>", self->version, self->max_version, self->length, self->ecc_level, self->buffer_size);
 }
 
-STATIC const mp_obj_type_t qrcode_QRCODE_type;
 STATIC MP_DEFINE_CONST_OBJ_TYPE(
 	qrcode_QRCODE_type,
 	MP_QSTR_QRCODE,
@@ -321,14 +332,15 @@ STATIC MP_DEFINE_CONST_OBJ_TYPE(
 	locals_dict, &qrcode_QRCODE_locals_dict
 );
 
-mp_obj_t qrcode_QRCODE_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
+mp_obj_t qrcode_QRCODE_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args)
+{
 	enum {
 		ARG_ecc_level,
 		ARG_max_version,
 	};
 
 	static const mp_arg_t allowed_args[] = {
-		{MP_QSTR_ecc_level,   MP_ARG_INT, {.u_int = ECC_MED}},
+		{MP_QSTR_ecc_level,   MP_ARG_INT, {.u_int = QRCODE_ECC_MED}},
 		{MP_QSTR_max_version, MP_ARG_INT, {.u_int = VERSION_MAX}},
 	};
 
@@ -368,10 +380,10 @@ STATIC const mp_rom_map_elem_t qrcode_module_globals_table[] = {
 	{MP_ROM_QSTR(MP_QSTR_QRCODE),			(mp_obj_t) &qrcode_QRCODE_type},
 
 	/* ecc levels*/
-	{MP_ROM_QSTR(MP_QSTR_ECC_LOW),			MP_ROM_INT(ECC_LOW)},
-	{MP_ROM_QSTR(MP_QSTR_ECC_MED),			MP_ROM_INT(ECC_MED)},
-	{MP_ROM_QSTR(MP_QSTR_ECC_QUART),		MP_ROM_INT(ECC_QUART)},
-	{MP_ROM_QSTR(MP_QSTR_ECC_HIGH),			MP_ROM_INT(ECC_HIGH)},
+	{MP_ROM_QSTR(MP_QSTR_ECC_LOW),			MP_ROM_INT(QRCODE_ECC_LOW)},
+	{MP_ROM_QSTR(MP_QSTR_ECC_MED),			MP_ROM_INT(QRCODE_ECC_MED)},
+	{MP_ROM_QSTR(MP_QSTR_ECC_QUART),		MP_ROM_INT(QRCODE_ECC_QUART)},
+	{MP_ROM_QSTR(MP_QSTR_ECC_HIGH),			MP_ROM_INT(QRCODE_ECC_HIGH)},
 
 	/* versions */
 	{MP_ROM_QSTR(MP_QSTR_VERSION_MIN),		MP_ROM_INT(VERSION_MIN)},
@@ -388,4 +400,6 @@ const mp_obj_module_t qrcode_user_cmodule = {
 	.globals = (mp_obj_dict_t *) &qrcode_module_globals,
 };
 
+#if MODULE_QRCODE_ENABLED
 MP_REGISTER_MODULE(MP_QSTR_qrcode, qrcode_user_cmodule);
+#endif
