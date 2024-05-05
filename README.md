@@ -2,25 +2,40 @@
 
 <p align="center"><img src="https://img.shields.io/badge/Licence-MIT-green.svg?style=for-the-badge" /></p>
 
-### 项目介绍
+## 项目介绍
 
 生成并显示指定内容的二维码
 
-### 添加模块
+## 如何添加模块
 
-* 将`ports/esp32/`下的文件夹复制到`MicroPython`项目对应位置
+> 以`ESP`系列芯片为例
+
+* 在`MicroPython`项目同级目录克隆或粘贴本项目文件夹，并将文件夹重命名为`qrcode`
+
+	```bash
+	git clone https://gitee.com/walkline/micropython-qrcode-cmodule qrcode
+	```
+
+* 根据`MicroPython`项目固件编译说明做好前期准备
+
 * 使用如下命令编译固件：
 
 	```bash
 	cd micropython/ports/esp32
-	make USER_C_MODULES=../cmodules/micropython.cmake
+	make USER_C_MODULES=../../../../qrcode/cmodules/micropython.cmake
 	```
 
-### 显示效果
+## 显示效果
 
 | 控制台 | TFT | OLED |
 | :-: | :-: | :-: |
 | ![](./images/console.png) | ![](./images/tft.png) | ![](./images/oled.png) |
+
+## 模块使用说明
+
+参考项目目录下`tests`文件中的代码。
+
+查看 [模块方法列表](./DOCS.md)
 
 ### 简单示例
 
@@ -51,78 +66,16 @@ $ ab
 # 使用 ab 工具打开串口
 $ ab --repl
 
-# 使用快捷键 ctrl+r，并选择以 demo_ 开头的文件
+# 使用快捷键 ctrl+r，并选择以 _test 结尾的文件
 ```
 
-### 模块方法列表
-
-* `qrcode.QRCODE([ecc_level, max_version])`
-	* `ecc_level`：容错等级（默认值`ECC_MED`），详情见`模块常量列表`
-	* `max_version`：可生成二维码的最大版本号（默认值`VERSION_MAX`），详情见`模块常量列表`
-
-	<br/>
-
-	> **适当降低最大版本号可以减少占用的缓存**
-	> ```python
-	> # 版本号对应缓存大小计算方法
-	> ((version * 4 + 17) ** 2 + 7) // 8 + 1
-	> ```
-
-* `ecc_level([level])`：获取或设置容错等级
-* `version()`：获取已生成二维码的版本号
-
-	> ```python
-	> # 版本号计算方法
-	> (QRCODE.length() - 17) // 4
-	> ```
-
-* `length()`：获取已生成二维码的边长
-* `generate(text)`：使用指定字符串生成二维码
-* `print()`：在控制台打印二维码预览图
-* `raw_data()`：获取二维码点阵元组数据，形如`((1, 0, ...), (0, 1, ...), ...)`
-* `buffer_data(byetarray, format[, scales, color, bg_color])`：将二维码数据以指定格式填充到数组
-	* `bytearray`：已初始化大小的`byetarray`数组
-	* `format`：数据格式，详情见`模块常量列表`
-	* `scales`：放大倍数（默认值`1`）
-	* `color`：前景颜色（默认值`1`或`0xffff`）
-	* `bg_color`：背景颜色（默认值`0x0000`）
-
-	<br/>
-
-	> ```python
-	> # bytearray 初始化长度计算方法：
-	>
-	> # FORMAT_MONO_HLSB 格式
-	> (QRCODE.length() * scales - 1) // 8 + 1) * (QRCODE.length() * scales)
-	>
-	> # FORMAT_RGB565 格式
-	> (QRCODE.length() * scales) ** 2 * 2
-	> ```
-
-### 模块常量列表
-
-* `ECC_LOW`：`7%`容错率，代表二维码内容缺失`7%`后仍可被正确识别，容错率与数据长度成正比，下同
-* `ECC_MED`：`15%`容错率
-* `ECC_QUART`：`25%`容错率
-* `ECC_HIGH`：`30%`容错率
-
-* `VERSION_MIN`：二维码支持的最低版本，`1`
-* `VERSION_MAX`：二维码支持的最高版本，`40`
-
-* `FORMAT_MONO_HLSB`：指定`buffer_data()`函数填充数组的方式，适用于`OLED`屏幕
-* `FORMAT_RGB565`：指定`buffer_data()`函数填充数组的方式，适用于`TFT`屏幕
-
-
-
-### 参考资料
+## 参考资料
 
 * [espressif/qrcode v0.1.0](https://components.espressif.com/components/espressif/qrcode)
 * [MicroPython QRCode Research](https://gitee.com/walkline/micropython-qrcode-research)
-* [ESP32-C3 MicroPython 固件编译环境搭建教程](https://gitee.com/walkline/esp32-c3_micropython_firmware)
-* [WSL 下加速 Github 克隆速度](https://walkline.wang/blog/archives/263)
 * [AMPY Batch Tool](https://gitee.com/walkline/a-batch-tool)
 
-### 合作交流
+## 合作交流
 
 * 联系邮箱：<walkline@163.com>
 * QQ 交流群：
