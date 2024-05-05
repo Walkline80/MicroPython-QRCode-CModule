@@ -10,8 +10,8 @@
 
 #include "qrcodegen.h"
 
-#define FORMAT_MONO_HLSB 0  /* Monochrome (1-bit) color format, byte are horizontally mapped */
-#define FORMAT_RGB565    1  /* Red Green Blue (16-bit, 5+6+5) color format */
+#define FORMAT_MONO_HLSB    0 /* Monochrome (1-bit) color format, byte are horizontally mapped */
+#define FORMAT_RGB565       1 /* Red Green Blue (16-bit, 5+6+5) color format */
 
 #define ECC_LOW   qrcodegen_Ecc_LOW     /* QR Code Error Tolerance of 7% */
 #define ECC_MED   qrcodegen_Ecc_MEDIUM    /* QR Code Error Tolerance of 15% */
@@ -24,7 +24,7 @@
 #define BLACK   0x0000
 #define WHITE   0xFFFF
 
-#define RGB2BGR_565(color)  ((color & 0xF800) >> 11) | (color & 0x07E0) | ((color & 0x001F) << 11)
+#define RGB2BGR_565(color) ((color & 0xF800) >> 11) | (color & 0x07E0) | ((color & 0x001F) << 11)
 
 typedef struct _qrcode_obj_t {
     mp_obj_base_t base;
