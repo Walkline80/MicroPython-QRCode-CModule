@@ -8,4 +8,3 @@ SRC_USERMOD_LIB_C += $(QRCODE_MOD_DIR)/qrcodegen/qrcodegen.c
 # This is not actually needed in this example.
 CFLAGS_USERMOD += -I$(QRCODE_MOD_DIR)
 CFLAGS_USERMOD += -I$(QRCODE_MOD_DIR)/qrcodegen
-CFLAGS_USERMOD += -I$(QRCODE_MOD_DIR)/qrcodegen/include

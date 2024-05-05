@@ -11,7 +11,6 @@ target_sources(usermod_qrcode INTERFACE
 target_include_directories(usermod_qrcode INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/qrcodegen
-    ${CMAKE_CURRENT_LIST_DIR}/qrcodegen/include
 )
 
 # Link our INTERFACE library to the usermod target.
